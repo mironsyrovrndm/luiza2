@@ -1,0 +1,390 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Админка — контент{% endblock %}
+{% block header %}Контент сайта{% endblock %}
+
+{% block content %}
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Hero</h2>
+    <span class="panel__badge">Главный блок</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Надзаголовок
+      <input type="text" name="hero_label" value="{{ content.hero_label }}" />
+    </label>
+    <label>
+      Заголовок
+      <input type="text" name="hero_title" value="{{ content.hero_title }}" />
+    </label>
+    <label class="span-2">
+      Текст
+      <textarea name="hero_text" rows="3">{{ content.hero_text }}</textarea>
+    </label>
+    <label>
+      Кнопка
+      <input type="text" name="hero_button" value="{{ content.hero_button }}" />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить тексты</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Обо мне</h2>
+    <span class="panel__badge">Блок профиля</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="about_title" value="{{ content.about_title }}" />
+    </label>
+    <label class="span-2">
+      Образование (по строкам)
+      <textarea name="about_education" rows="4">{{ content.about_education | join('\n') }}</textarea>
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel" data-repeatable="products">
+  <div class="panel__header">
+    <h2>Продукты</h2>
+    <span class="panel__badge">Список карточек</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="products_title" value="{{ content.products_title }}" />
+    </label>
+    <div class="repeatable">
+      <div class="repeatable__header">
+        <h3>Карточки</h3>
+        <button class="button button--ghost" type="button" data-add-item>Добавить карточку</button>
+      </div>
+      <div class="repeatable__list">
+        {% for item in content.products %}
+        <div class="repeatable__item" data-repeatable-item>
+          <label>
+            Бэйдж
+            <input type="text" name="products_badge" value="{{ item.badge }}" />
+          </label>
+          <label>
+            Заголовок
+            <input type="text" name="products_title_item" value="{{ item.title }}" />
+          </label>
+          <label class="span-2">
+            Текст
+            <textarea name="products_text" rows="2">{{ item.text }}</textarea>
+          </label>
+          <label>
+            Метаданные
+            <input type="text" name="products_meta" value="{{ item.meta }}" />
+          </label>
+          <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+        </div>
+        {% endfor %}
+        <template data-repeatable-template>
+          <div class="repeatable__item" data-repeatable-item>
+            <label>
+              Бэйдж
+              <input type="text" name="products_badge" value="" />
+            </label>
+            <label>
+              Заголовок
+              <input type="text" name="products_title_item" value="" />
+            </label>
+            <label class="span-2">
+              Текст
+              <textarea name="products_text" rows="2"></textarea>
+            </label>
+            <label>
+              Метаданные
+              <input type="text" name="products_meta" value="" />
+            </label>
+            <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel" data-repeatable="clients">
+  <div class="panel__header">
+    <h2>Клиентам</h2>
+    <span class="panel__badge">Форматы</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="clients_title" value="{{ content.clients_title }}" />
+    </label>
+    <label>
+      Подзаголовок
+      <input type="text" name="clients_subtitle" value="{{ content.clients_subtitle }}" />
+    </label>
+    <div class="repeatable">
+      <div class="repeatable__header">
+        <h3>Карточки</h3>
+        <button class="button button--ghost" type="button" data-add-item>Добавить карточку</button>
+      </div>
+      <div class="repeatable__list">
+        {% for item in content.clients %}
+        <div class="repeatable__item" data-repeatable-item>
+          <label>
+            Заголовок
+            <input type="text" name="clients_title_item" value="{{ item.title }}" />
+          </label>
+          <label class="span-2">
+            Текст
+            <textarea name="clients_text" rows="2">{{ item.text }}</textarea>
+          </label>
+          <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+        </div>
+        {% endfor %}
+        <template data-repeatable-template>
+          <div class="repeatable__item" data-repeatable-item>
+            <label>
+              Заголовок
+              <input type="text" name="clients_title_item" value="" />
+            </label>
+            <label class="span-2">
+              Текст
+              <textarea name="clients_text" rows="2"></textarea>
+            </label>
+            <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel" data-repeatable="supervision">
+  <div class="panel__header">
+    <h2>Супервизия</h2>
+    <span class="panel__badge">Карточки</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="supervision_title" value="{{ content.supervision_title }}" />
+    </label>
+    <label>
+      Подзаголовок
+      <input type="text" name="supervision_subtitle" value="{{ content.supervision_subtitle }}" />
+    </label>
+    <div class="repeatable">
+      <div class="repeatable__header">
+        <h3>Карточки</h3>
+        <button class="button button--ghost" type="button" data-add-item>Добавить карточку</button>
+      </div>
+      <div class="repeatable__list">
+        {% for item in content.supervision %}
+        <div class="repeatable__item" data-repeatable-item>
+          <label>
+            Заголовок
+            <input type="text" name="supervision_title_item" value="{{ item.title }}" />
+          </label>
+          <label>
+            Цена
+            <input type="text" name="supervision_price" value="{{ item.price }}" />
+          </label>
+          <label>
+            Метаданные
+            <input type="text" name="supervision_meta" value="{{ item.meta }}" />
+          </label>
+          <label class="span-2">
+            Пункты (каждая строка)
+            <textarea name="supervision_bullets" rows="3">{{ item.bullets | join('\n') }}</textarea>
+          </label>
+          <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+        </div>
+        {% endfor %}
+        <template data-repeatable-template>
+          <div class="repeatable__item" data-repeatable-item>
+            <label>
+              Заголовок
+              <input type="text" name="supervision_title_item" value="" />
+            </label>
+            <label>
+              Цена
+              <input type="text" name="supervision_price" value="" />
+            </label>
+            <label>
+              Метаданные
+              <input type="text" name="supervision_meta" value="" />
+            </label>
+            <label class="span-2">
+              Пункты (каждая строка)
+              <textarea name="supervision_bullets" rows="3"></textarea>
+            </label>
+            <button class="button button--ghost" type="button" data-remove-item>Удалить</button>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Я — спикер</h2>
+    <span class="panel__badge">CTA</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="speaker_title" value="{{ content.speaker_title }}" />
+    </label>
+    <label class="span-2">
+      Текст
+      <textarea name="speaker_text" rows="2">{{ content.speaker_text }}</textarea>
+    </label>
+    <label>
+      Кнопка
+      <input type="text" name="speaker_button" value="{{ content.speaker_button }}" />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Контакты</h2>
+    <span class="panel__badge">Футер</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    <label>
+      Заголовок
+      <input type="text" name="contacts_title" value="{{ content.contacts_title }}" />
+    </label>
+    <label class="span-2">
+      Текст
+      <textarea name="contacts_text" rows="2">{{ content.contacts_text }}</textarea>
+    </label>
+    <label>
+      Телефон
+      <input type="text" name="contacts_phone" value="{{ content.contacts_phone }}" />
+    </label>
+    <label>
+      Почта
+      <input type="email" name="contacts_email" value="{{ content.contacts_email }}" />
+    </label>
+    <label>
+      Telegram
+      <input type="text" name="contacts_telegram" value="{{ content.contacts_telegram }}" />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Сохранить блок</button>
+    </div>
+  </form>
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Фото для главного блока</h2>
+    <span class="panel__badge">Hero</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_hero') }}" enctype="multipart/form-data">
+    <label>
+      Загрузить фото
+      <input type="file" name="photo" accept="image/*" required />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Загрузить</button>
+    </div>
+  </form>
+  {% if content.hero_image %}
+  <div class="gallery">
+    <div class="gallery__item">
+      <img src="{{ url_for('site.static', filename='hero/' ~ content.hero_image) }}" alt="Hero" />
+      <span>{{ content.hero_image }}</span>
+      <form method="post" action="{{ url_for('admin.delete_hero') }}">
+        <button class="button button--ghost" type="submit">Удалить</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted">Фото для hero пока не загружено.</p>
+  {% endif %}
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Фото для блока "Обо мне"</h2>
+    <span class="panel__badge">About</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_about') }}" enctype="multipart/form-data">
+    <label>
+      Загрузить фото
+      <input type="file" name="photo" accept="image/*" required />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Загрузить</button>
+    </div>
+  </form>
+  {% if content.about_image %}
+  <div class="gallery">
+    <div class="gallery__item">
+      <img src="{{ url_for('site.static', filename='about/' ~ content.about_image) }}" alt="About" />
+      <span>{{ content.about_image }}</span>
+      <form method="post" action="{{ url_for('admin.delete_about') }}">
+        <button class="button button--ghost" type="submit">Удалить</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="muted">Фото для блока "Обо мне" пока не загружено.</p>
+  {% endif %}
+</section>
+
+<section class="admin__panel">
+  <div class="panel__header">
+    <h2>Галерея</h2>
+    <span class="panel__badge">Загрузка в галерею</span>
+  </div>
+  <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_gallery') }}" enctype="multipart/form-data">
+    <label>
+      Загрузить фото (можно несколько)
+      <input type="file" name="photo" accept="image/*" multiple required />
+    </label>
+    <div class="form-grid__actions">
+      <button class="button" type="submit">Загрузить</button>
+    </div>
+  </form>
+  {% if uploads %}
+  <div class="gallery">
+    {% for image in uploads %}
+    <div class="gallery__item">
+      <img src="{{ url_for('site.static', filename='uploads/' ~ image) }}" alt="Загруженное фото" />
+      <span>{{ image }}</span>
+      <form method="post" action="{{ url_for('admin.delete_gallery') }}">
+        <input type="hidden" name="filename" value="{{ image }}" />
+        <button class="button button--ghost" type="submit">Удалить</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="muted">Фотографий пока нет.</p>
+  {% endif %}
+</section>
+{% endblock %}
