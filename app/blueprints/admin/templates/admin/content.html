@@ -10,6 +10,8 @@
     <span class="panel__badge">Главный блок</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
+    {{ csrf_token() }}
     <label>
       Надзаголовок
       <input type="text" name="hero_label" value="{{ content.hero_label }}" />
@@ -38,6 +40,7 @@
     <span class="panel__badge">Блок профиля</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
     <label>
       Заголовок
       <input type="text" name="about_title" value="{{ content.about_title }}" />
@@ -58,6 +61,7 @@
     <span class="panel__badge">Список карточек</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
     <label>
       Заголовок
       <input type="text" name="products_title" value="{{ content.products_title }}" />
@@ -124,6 +128,7 @@
     <span class="panel__badge">Форматы</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
     <label>
       Заголовок
       <input type="text" name="clients_title" value="{{ content.clients_title }}" />
@@ -178,6 +183,7 @@
     <span class="panel__badge">Карточки</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
     <label>
       Заголовок
       <input type="text" name="supervision_title" value="{{ content.supervision_title }}" />
@@ -248,6 +254,7 @@
     <span class="panel__badge">CTA</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.save_content') }}">
+    {{ csrf_token() }}
     <label>
       Заголовок
       <input type="text" name="speaker_title" value="{{ content.speaker_title }}" />
@@ -304,6 +311,7 @@
     <span class="panel__badge">Hero</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_hero') }}" enctype="multipart/form-data">
+    {{ csrf_token() }}
     <label>
       Загрузить фото
       <input type="file" name="photo" accept="image/*" required />
@@ -315,9 +323,10 @@
   {% if content.hero_image %}
   <div class="gallery">
     <div class="gallery__item">
-      <img src="{{ url_for('site.static', filename='hero/' ~ content.hero_image) }}" alt="Hero" />
+      <img src="{{ content.hero_image_url }}" alt="Hero" />
       <span>{{ content.hero_image }}</span>
       <form method="post" action="{{ url_for('admin.delete_hero') }}">
+        {{ csrf_token() }}
         <button class="button button--ghost" type="submit">Удалить</button>
       </form>
     </div>
@@ -333,6 +342,7 @@
     <span class="panel__badge">About</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_about') }}" enctype="multipart/form-data">
+    {{ csrf_token() }}
     <label>
       Загрузить фото
       <input type="file" name="photo" accept="image/*" required />
@@ -344,9 +354,10 @@
   {% if content.about_image %}
   <div class="gallery">
     <div class="gallery__item">
-      <img src="{{ url_for('site.static', filename='about/' ~ content.about_image) }}" alt="About" />
+      <img src="{{ content.about_image_url }}" alt="About" />
       <span>{{ content.about_image }}</span>
       <form method="post" action="{{ url_for('admin.delete_about') }}">
+        {{ csrf_token() }}
         <button class="button button--ghost" type="submit">Удалить</button>
       </form>
     </div>
@@ -362,6 +373,7 @@
     <span class="panel__badge">Загрузка в галерею</span>
   </div>
   <form class="form-grid form-grid--compact" method="post" action="{{ url_for('admin.upload_gallery') }}" enctype="multipart/form-data">
+    {{ csrf_token() }}
     <label>
       Загрузить фото (можно несколько)
       <input type="file" name="photo" accept="image/*" multiple required />
@@ -374,10 +386,11 @@
   <div class="gallery">
     {% for image in uploads %}
     <div class="gallery__item">
-      <img src="{{ url_for('site.static', filename='uploads/' ~ image) }}" alt="Загруженное фото" />
-      <span>{{ image }}</span>
+      <img src="{{ image.url }}" alt="Загруженное фото" />
+      <span>{{ image.filename }}</span>
       <form method="post" action="{{ url_for('admin.delete_gallery') }}">
-        <input type="hidden" name="filename" value="{{ image }}" />
+        {{ csrf_token() }}
+        <input type="hidden" name="image_id" value="{{ image.id }}" />
         <button class="button button--ghost" type="submit">Удалить</button>
       </form>
     </div>

@@ -15,7 +15,7 @@
     </div>
     <div class="hero__image">
       {% if content.hero_image %}
-      <img src="{{ url_for('site.static', filename='hero/' ~ content.hero_image) }}" alt="Фото" />
+      <img src="{{ content.hero_image_url }}" alt="Фото" />
       {% else %}
       <span>Фото</span>
       {% endif %}
@@ -29,7 +29,7 @@
   <div class="container about">
     <div class="about__image">
       {% if content.about_image %}
-      <img src="{{ url_for('site.static', filename='about/' ~ content.about_image) }}" alt="Обо мне" />
+      <img src="{{ content.about_image_url }}" alt="Обо мне" />
       {% else %}
       <span>Фото</span>
       {% endif %}
@@ -81,7 +81,7 @@
     <div class="gallery-grid">
       {% for image in gallery_images %}
       <div class="gallery-grid__item" data-gallery-item>
-        <img src="{{ url_for('site.static', filename='uploads/' ~ image) }}" alt="Галерея" data-gallery-src="{{ url_for('site.static', filename='uploads/' ~ image) }}" />
+        <img src="{{ image.url }}" alt="Галерея" data-gallery-src="{{ image.url }}" />
       </div>
       {% endfor %}
     </div>
@@ -159,6 +159,7 @@
       </div>
     </div>
     <form class="contact__form" method="post" action="{{ url_for('site.contact') }}">
+      {{ csrf_token() }}
       <label>
         Имя
         <input type="text" name="name" placeholder="Как к вам обращаться" required />

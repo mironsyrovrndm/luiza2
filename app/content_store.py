@@ -1,8 +1,10 @@
-import json
-from pathlib import Path
+from datetime import datetime
 from typing import Any
 
-from app.config import Config
+from sqlalchemy import select
+
+from app.db import session_scope
+from app.models import SiteContent
 
 DEFAULT_CONTENT: dict[str, Any] = {
     "hero_label": "Клиент-центрированный психотерапевт",
@@ -10,8 +12,10 @@ DEFAULT_CONTENT: dict[str, Any] = {
     "hero_text": "Бережно сопровождаю в поиске опоры, устойчивости и собственного пути — онлайн и очно.",
     "hero_button": "Записаться на консультацию →",
     "hero_image": "",
+    "hero_image_key": "",
     "about_title": "Обо мне",
     "about_image": "",
+    "about_image_key": "",
     "about_education": [
         "Московский психолого-социальный университет, 2008–2013",
         "МГППУ, магистратура, 2014–2016",
@@ -117,23 +121,23 @@ DEFAULT_CONTENT: dict[str, Any] = {
 }
 
 
-def _store_path() -> Path:
-    return Path(Config.CONTENT_FILE)
-
-
 def load_content() -> dict[str, Any]:
-    path = _store_path()
-    if not path.exists():
-        return DEFAULT_CONTENT.copy()
-    with path.open("r", encoding="utf-8") as handle:
-        data = json.load(handle)
-    merged = DEFAULT_CONTENT.copy()
-    merged.update(data)
-    return merged
+    with session_scope() as session:
+        row = session.execute(select(SiteContent).limit(1)).scalar_one_or_none()
+        if not row:
+            payload = DEFAULT_CONTENT.copy()
+            session.add(SiteContent(data=payload))
+            return payload
+        merged = DEFAULT_CONTENT.copy()
+        merged.update(row.data or {})
+        return merged
 
 
 def save_content(payload: dict[str, Any]) -> None:
-    path = _store_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
+    with session_scope() as session:
+        row = session.execute(select(SiteContent).limit(1)).scalar_one_or_none()
+        if not row:
+            session.add(SiteContent(data=payload))
+        else:
+            row.data = payload
+            row.updated_at = datetime.utcnow()

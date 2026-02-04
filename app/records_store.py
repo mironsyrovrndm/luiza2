@@ -1,57 +1,49 @@
-import json
-from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from app.config import Config
+from sqlalchemy import desc, select
 
-
-def _store_path() -> Path:
-    return Path(Config.RECORDS_FILE)
+from app.db import session_scope
+from app.models import Record
 
 
 def load_records() -> list[dict[str, Any]]:
-    path = _store_path()
-    if not path.exists():
-        return []
-    with path.open("r", encoding="utf-8") as handle:
-        data = json.load(handle)
-    if isinstance(data, list):
-        records = [item for item in data if isinstance(item, dict)]
-        updated = False
-        for record in records:
-            if not record.get("id"):
-                record["id"] = uuid4().hex
-                updated = True
-        if updated:
-            save_records(records)
-        return records
-    return []
-
-
-def save_records(records: list[dict[str, Any]]) -> None:
-    path = _store_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(records, handle, ensure_ascii=False, indent=2)
+    with session_scope() as session:
+        rows = session.execute(select(Record).order_by(desc(Record.created_at))).scalars().all()
+        return [
+            {
+                "id": row.id,
+                "date": row.date,
+                "name": row.name,
+                "phone": row.phone,
+                "telegram": row.telegram,
+                "complaint": row.complaint,
+                "status": row.status,
+            }
+            for row in rows
+        ]
 
 
 def add_record(record: dict[str, Any]) -> None:
-    records = load_records()
-    if not record.get("id"):
-        record["id"] = uuid4().hex
-    records.insert(0, record)
-    save_records(records)
+    with session_scope() as session:
+        record_id = record.get("id") or uuid4().hex
+        session.add(
+            Record(
+                id=record_id,
+                date=record["date"],
+                name=record["name"],
+                phone=record["phone"],
+                telegram=record.get("telegram"),
+                complaint=record["complaint"],
+                status=record.get("status", "Новая"),
+            )
+        )
 
 
 def update_record_status(record_id: str, status: str) -> bool:
-    records = load_records()
-    updated = False
-    for record in records:
-        if str(record.get("id")) == record_id:
-            record["status"] = status
-            updated = True
-            break
-    if updated:
-        save_records(records)
-    return updated
+    with session_scope() as session:
+        row = session.get(Record, record_id)
+        if not row:
+            return False
+        row.status = status
+        return True
