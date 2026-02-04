@@ -1,34 +1,18 @@
-import os
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Iterable
 
-from flask import redirect, render_template, request, session, url_for
-from werkzeug.utils import secure_filename
+from flask import abort, redirect, render_template, request, session, url_for
 
 from app.blueprints.admin import admin_bp
+from app.auth import get_admin_by_username, verify_password
 from app.config import Config
 from app.content_store import DEFAULT_CONTENT, load_content, save_content
+from app.gallery_store import add_gallery_image, delete_gallery_image, list_gallery_images
 from app.records_store import add_record, load_records, update_record_status
+from app.storage import delete_file, public_url, save_file
 
-ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif", "webp"}
-
-
-def _is_allowed(filename: str) -> bool:
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def _list_uploads() -> Iterable[str]:
-    upload_dir = Path(Config.UPLOAD_FOLDER)
-    if not upload_dir.exists():
-        return []
-    return sorted(
-        [
-            file.name
-            for file in upload_dir.iterdir()
-            if file.is_file() and _is_allowed(file.name)
-        ]
-    )
+def _list_uploads() -> Iterable:
+    return [image for image in list_gallery_images()]
 
 
 def _split_lines(value: str) -> list[str]:
@@ -77,13 +61,6 @@ def _parse_supervision() -> list[dict[str, object]]:
     return items
 
 
-def _save_file(file, upload_dir: Path) -> str:
-    filename = secure_filename(file.filename)
-    os.makedirs(upload_dir, exist_ok=True)
-    file.save(upload_dir / filename)
-    return filename
-
-
 def _format_datetime(date_value: str, time_value: str) -> str:
     if date_value:
         try:
@@ -117,6 +94,8 @@ def _parse_record_datetime(value: str) -> datetime | None:
 def require_admin():
     if not request.path.startswith("/admin"):
         return None
+    if Config.ADMIN_ALLOWED_IPS and request.remote_addr not in Config.ADMIN_ALLOWED_IPS:
+        abort(403)
     if request.endpoint in {"admin.login", "admin.login_post", "admin.static"}:
         return None
     if not session.get("admin_logged_in"):
@@ -133,8 +112,10 @@ def login():
 def login_post():
     username = request.form.get("username", "")
     password = request.form.get("password", "")
-    if username == "admin" and password == "admin":
+    admin_user = get_admin_by_username(username)
+    if admin_user and admin_user.is_active and verify_password(password, admin_user.password_hash):
         session["admin_logged_in"] = True
+        session["admin_user_id"] = admin_user.id
         return redirect(url_for("admin.dashboard"))
     return render_template("admin/login.html", error="Неверный логин или пароль")
 
@@ -142,6 +123,7 @@ def login_post():
 @admin_bp.get("/logout")
 def logout():
     session.pop("admin_logged_in", None)
+    session.pop("admin_user_id", None)
     return redirect(url_for("admin.login"))
 
 
@@ -189,7 +171,25 @@ def dashboard():
 def content():
     uploads = _list_uploads()
     content_data = load_content()
-    return render_template("admin/content.html", uploads=uploads, content=content_data)
+    content_data["hero_image_url"] = (
+        public_url("hero", content_data.get("hero_image_key", content_data.get("hero_image", "")))
+        if content_data.get("hero_image")
+        else ""
+    )
+    content_data["about_image_url"] = (
+        public_url("about", content_data.get("about_image_key", content_data.get("about_image", "")))
+        if content_data.get("about_image")
+        else ""
+    )
+    uploads_payload = [
+        {
+            "id": image.id,
+            "filename": image.filename,
+            "url": public_url("uploads", image.storage_key),
+        }
+        for image in uploads
+    ]
+    return render_template("admin/content.html", uploads=uploads_payload, content=content_data)
 
 
 @admin_bp.post("/content/save", endpoint="save_content")
@@ -238,12 +238,13 @@ def upload_hero():
     file = request.files.get("photo")
     if not file or file.filename == "":
         return redirect(url_for("admin.content"))
-    if not _is_allowed(file.filename):
+    try:
+        filename, storage_key = save_file(file, Config.HERO_UPLOAD_FOLDER, "hero")
+    except ValueError:
         return redirect(url_for("admin.content"))
-
-    filename = _save_file(file, Path(Config.HERO_UPLOAD_FOLDER))
     content_data = load_content()
     content_data["hero_image"] = filename
+    content_data["hero_image_key"] = storage_key
     save_content(content_data)
     return redirect(url_for("admin.content"))
 
@@ -252,11 +253,11 @@ def upload_hero():
 def delete_hero():
     content_data = load_content()
     filename = content_data.get("hero_image")
+    storage_key = content_data.get("hero_image_key", filename)
     if filename:
-        path = Path(Config.HERO_UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+        delete_file(Config.HERO_UPLOAD_FOLDER, "hero", storage_key or filename)
         content_data["hero_image"] = ""
+        content_data["hero_image_key"] = ""
         save_content(content_data)
     return redirect(url_for("admin.content"))
 
@@ -266,12 +267,13 @@ def upload_about():
     file = request.files.get("photo")
     if not file or file.filename == "":
         return redirect(url_for("admin.content"))
-    if not _is_allowed(file.filename):
+    try:
+        filename, storage_key = save_file(file, Config.ABOUT_UPLOAD_FOLDER, "about")
+    except ValueError:
         return redirect(url_for("admin.content"))
-
-    filename = _save_file(file, Path(Config.ABOUT_UPLOAD_FOLDER))
     content_data = load_content()
     content_data["about_image"] = filename
+    content_data["about_image_key"] = storage_key
     save_content(content_data)
     return redirect(url_for("admin.content"))
 
@@ -280,11 +282,11 @@ def upload_about():
 def delete_about():
     content_data = load_content()
     filename = content_data.get("about_image")
+    storage_key = content_data.get("about_image_key", filename)
     if filename:
-        path = Path(Config.ABOUT_UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+        delete_file(Config.ABOUT_UPLOAD_FOLDER, "about", storage_key or filename)
         content_data["about_image"] = ""
+        content_data["about_image_key"] = ""
         save_content(content_data)
     return redirect(url_for("admin.content"))
 
@@ -295,23 +297,24 @@ def upload_gallery():
     if not files:
         return redirect(url_for("admin.content"))
 
-    upload_dir = Path(Config.UPLOAD_FOLDER)
     for file in files:
         if not file or file.filename == "":
             continue
-        if not _is_allowed(file.filename):
+        try:
+            filename, storage_key = save_file(file, Config.UPLOAD_FOLDER, "uploads")
+        except ValueError:
             continue
-        _save_file(file, upload_dir)
+        add_gallery_image(filename, storage_key)
     return redirect(url_for("admin.content"))
 
 
 @admin_bp.post("/content/delete-gallery")
 def delete_gallery():
-    filename = request.form.get("filename", "")
-    if filename:
-        path = Path(Config.UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+    image_id = request.form.get("image_id", "")
+    if image_id:
+        image = delete_gallery_image(image_id)
+        if image:
+            delete_file(Config.UPLOAD_FOLDER, "uploads", image.storage_key)
     return redirect(url_for("admin.content"))
 
 

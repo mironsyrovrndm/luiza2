@@ -9,6 +9,7 @@
   <body>
     <div class="login">
       <form class="login__card" method="post">
+        {{ csrf_token() }}
         <h1>Админка</h1>
         <p>Введите логин и пароль администратора.</p>
         {% if error %}

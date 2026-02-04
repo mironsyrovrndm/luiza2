@@ -20,4 +20,4 @@ RUN poetry install --no-root
 
 COPY . /app
 
-CMD ["poetry", "run", "python", "run.py"]
+CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:5000", "run:app"]

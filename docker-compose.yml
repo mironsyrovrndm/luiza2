@@ -5,7 +5,10 @@ services:
       - "5000:5000"
     environment:
       - DATABASE_URL=postgresql://psy_user:psy_password@db:5432/psy_db
-      - SECRET_KEY=change-me
+      - SECRET_KEY=${SECRET_KEY}
+      - SESSION_COOKIE_SECURE=false
+      - SESSION_COOKIE_SAMESITE=Lax
+      - ADMIN_ALLOWED_IPS=
     volumes:
       - psy_content:/app/app/data
       - psy_uploads:/app/app/blueprints/site/static/uploads
