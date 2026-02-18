@@ -7,7 +7,10 @@ ENV POETRY_VERSION=1.8.3 \
     PYTHONUNBUFFERED=1
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl build-essential libpq-dev \
+    && apt-get install -y --no-install-recommends \
+        curl build-essential libpq-dev \
+        supervisor \
+        sqitch libdbd-pg-perl postgresql-client \
     && curl -sSL https://install.python-poetry.org | python3 - \
     && ln -s $POETRY_HOME/bin/poetry /usr/local/bin/poetry \
     && apt-get purge -y --auto-remove curl \
@@ -20,4 +23,9 @@ RUN poetry install --no-root
 
 COPY . /app
 
-CMD ["poetry", "run", "python", "run.py"]
+RUN chmod +x /app/deploy/entrypoint.sh
+
+EXPOSE 5000
+
+ENTRYPOINT ["/app/deploy/entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/app/deploy/supervisord.conf"]

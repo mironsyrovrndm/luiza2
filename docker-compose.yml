@@ -1,29 +1,60 @@
 services:
   web:
     build: .
+    restart: unless-stopped
     ports:
       - "5000:5000"
+
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql://psy_user:psy_password@db:5432/psy_db
-      - SECRET_KEY=change-me
+      # App
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+
+      # Sqitch (entrypoint делает: sqitch deploy "$SQITCH_TARGET")
+      - SQITCH_TARGET=${SQITCH_TARGET}
+      - SQITCH_CONFIG=/app/sqitch/sqitch.conf
+
+      # Для pg_isready в entrypoint (ждём БД без sqitch status)
+      - DB_HOST=db
+      - DB_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+
     volumes:
       - psy_content:/app/app/data
       - psy_uploads:/app/app/blueprints/site/static/uploads
       - psy_hero:/app/app/blueprints/site/static/hero
       - psy_about:/app/app/blueprints/site/static/about
+
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:15
     restart: unless-stopped
+
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=psy_user
-      - POSTGRES_PASSWORD=psy_password
-      - POSTGRES_DB=psy_db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
     ports:
       - "5432:5432"
+
     volumes:
       - psy_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
 
 volumes:
   psy_data:
