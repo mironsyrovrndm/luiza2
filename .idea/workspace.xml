@@ -5,19 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e541c4db-ba19-4534-9011-b9ab44a63de1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/deploy/entrypoint.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/deploy/supervisord.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/deploy/uwsgi.ini" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/sqitch/sqitch.plan" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/wsgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sqitch.conf" beforeDir="false" afterPath="$PROJECT_DIR$/sqitch/sqitch.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sqitch.plan" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/entrypoint.sh" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/entrypoint.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/deploy/supervisord.conf" beforeDir="false" afterPath="$PROJECT_DIR$/deploy/supervisord.conf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

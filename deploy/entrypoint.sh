@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+# Указываем, где лежит конфиг Sqitch (у тебя он в /app/sqitch/)
 export SQITCH_CONFIG=/app/sqitch/sqitch.conf
 
 if [ -z "${SQITCH_TARGET:-}" ]; then
@@ -8,12 +9,10 @@ if [ -z "${SQITCH_TARGET:-}" ]; then
   exit 1
 fi
 
-# извлекаем host/port/user/db из DATABASE_URL (проще) или задай отдельными env
-# здесь самый простой путь: используем pg_isready по host db и user из env Postgres
-: "${POSTGRES_USER:=psy_user}"
-: "${POSTGRES_DB:=psy_db}"
 : "${DB_HOST:=db}"
 : "${DB_PORT:=5432}"
+: "${POSTGRES_USER:=psy_user}"
+: "${POSTGRES_DB:=psy_db}"
 
 echo "Waiting for Postgres ${DB_HOST}:${DB_PORT}..."
 i=0
