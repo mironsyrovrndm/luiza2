@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.config import Config
+from src.settings import Config
 
 DEFAULT_CONTENT: dict[str, Any] = {
     "hero_label": "Клиент-центрированный психотерапевт",
