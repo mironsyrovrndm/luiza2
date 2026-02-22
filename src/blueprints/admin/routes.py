@@ -7,7 +7,7 @@ from flask import redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
 from src.blueprints.admin import admin_bp
-from src.settings import Config
+from src import settings
 from src.content_store import DEFAULT_CONTENT, load_content, save_content
 from src.records_store import add_record, load_records, update_record_status
 
@@ -19,7 +19,7 @@ def _is_allowed(filename: str) -> bool:
 
 
 def _list_uploads() -> Iterable[str]:
-    upload_dir = Path(Config.UPLOAD_FOLDER)
+    upload_dir = Path(settings.UPLOAD_FOLDER)
     if not upload_dir.exists():
         return []
     return sorted(
@@ -133,7 +133,7 @@ def login():
 def login_post():
     username = request.form.get("username", "")
     password = request.form.get("password", "")
-    if username == "admin" and password == "admin":
+    if username == "admin" and password == settings.ADMIN_PASSWORD:
         session["admin_logged_in"] = True
         return redirect(url_for("admin.dashboard"))
     return render_template("admin/login.html", error="Неверный логин или пароль")
@@ -241,7 +241,7 @@ def upload_hero():
     if not _is_allowed(file.filename):
         return redirect(url_for("admin.content"))
 
-    filename = _save_file(file, Path(Config.HERO_UPLOAD_FOLDER))
+    filename = _save_file(file, Path(settings.HERO_UPLOAD_FOLDER))
     content_data = load_content()
     content_data["hero_image"] = filename
     save_content(content_data)
@@ -253,7 +253,7 @@ def delete_hero():
     content_data = load_content()
     filename = content_data.get("hero_image")
     if filename:
-        path = Path(Config.HERO_UPLOAD_FOLDER) / filename
+        path = Path(settings.HERO_UPLOAD_FOLDER) / filename
         if path.exists():
             path.unlink()
         content_data["hero_image"] = ""
@@ -269,7 +269,7 @@ def upload_about():
     if not _is_allowed(file.filename):
         return redirect(url_for("admin.content"))
 
-    filename = _save_file(file, Path(Config.ABOUT_UPLOAD_FOLDER))
+    filename = _save_file(file, Path(settings.ABOUT_UPLOAD_FOLDER))
     content_data = load_content()
     content_data["about_image"] = filename
     save_content(content_data)
@@ -281,7 +281,7 @@ def delete_about():
     content_data = load_content()
     filename = content_data.get("about_image")
     if filename:
-        path = Path(Config.ABOUT_UPLOAD_FOLDER) / filename
+        path = Path(settings.ABOUT_UPLOAD_FOLDER) / filename
         if path.exists():
             path.unlink()
         content_data["about_image"] = ""
@@ -295,7 +295,7 @@ def upload_gallery():
     if not files:
         return redirect(url_for("admin.content"))
 
-    upload_dir = Path(Config.UPLOAD_FOLDER)
+    upload_dir = Path(settings.UPLOAD_FOLDER)
     for file in files:
         if not file or file.filename == "":
             continue
@@ -309,7 +309,7 @@ def upload_gallery():
 def delete_gallery():
     filename = request.form.get("filename", "")
     if filename:
-        path = Path(Config.UPLOAD_FOLDER) / filename
+        path = Path(settings.UPLOAD_FOLDER) / filename
         if path.exists():
             path.unlink()
     return redirect(url_for("admin.content"))

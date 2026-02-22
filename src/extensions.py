@@ -1,5 +1,7 @@
-"""Flask extensions registry.
+from flask import Flask
 
-This module is intentionally minimal for now and can be extended
-when shared Flask extensions are introduced.
-"""
+
+def init_extensions(app: Flask) -> None:
+    """Initialize Flask extensions."""
+    # Extension initialization hook.
+    _ = app
