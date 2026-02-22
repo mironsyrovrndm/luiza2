@@ -16,7 +16,7 @@ UPLOAD_PATH = os.getenv("UPLOAD_PATH", str(BASE_DIR / "blueprints" / "site" / "s
 BLUEPRINTS = ["site", "admin"]
 
 # Runtime paths used across handlers/stores
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://psy_user:psy_password@db:5432/psy_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://psy_user:psy_password@localhost:5432/psy_db")
 CONTENT_FILE = os.getenv("CONTENT_FILE", str(Path(DATA_PATH) / "content.json"))
 RECORDS_FILE = os.getenv("RECORDS_FILE", str(Path(DATA_PATH) / "records.json"))
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(Path(UPLOAD_PATH) / "uploads"))

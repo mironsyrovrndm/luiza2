@@ -10,7 +10,7 @@ UPLOAD_PATH = os.getenv("UPLOAD_PATH", "/uploads")
 
 BLUEPRINTS = ["site", "admin"]
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://psy_user:psy_password@db:5432/psy_db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://psy_user:psy_password@host.docker.internal:5432/psy_db")
 CONTENT_FILE = os.getenv("CONTENT_FILE", f"{DATA_PATH}/content.json")
 RECORDS_FILE = os.getenv("RECORDS_FILE", f"{DATA_PATH}/records.json")
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", f"{UPLOAD_PATH}/uploads")

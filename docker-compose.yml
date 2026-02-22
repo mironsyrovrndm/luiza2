@@ -5,6 +5,8 @@ services:
       - ./data:/data
       - ./uploads:/uploads
     build: .
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     entrypoint: []
     command: sh -c "
       poetry env info
@@ -19,3 +21,4 @@ services:
       FLASK_SETTINGS: /app/etc/settings_docker.py
       FLASK_ENV: development
       FLASK_DEBUG: 1
+      DATABASE_URL: ${DATABASE_URL:-postgresql://psy_user:psy_password@host.docker.internal:5432/psy_db}
