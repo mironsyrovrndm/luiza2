@@ -1,11 +1,27 @@
+from pathlib import Path
 from uuid import uuid4
 
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 from src.db import get_connection
+from src.settings import ABOUT_UPLOAD_FOLDER, HERO_UPLOAD_FOLDER, UPLOAD_FOLDER
 
 ALLOWED_CATEGORIES = {"hero", "about", "uploads"}
+
+
+def _category_dir(category: str) -> Path:
+    if category == "hero":
+        return Path(HERO_UPLOAD_FOLDER)
+    if category == "about":
+        return Path(ABOUT_UPLOAD_FOLDER)
+    return Path(UPLOAD_FOLDER)
+
+
+def _save_local_copy(photo_id: str, category: str, payload: bytes) -> None:
+    target_dir = _category_dir(category)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    (target_dir / photo_id).write_bytes(payload)
 
 
 def save_photo(category: str, file: FileStorage) -> str:
@@ -27,6 +43,7 @@ def save_photo(category: str, file: FileStorage) -> str:
                 (photo_id, category, filename, mime_type, payload),
             )
 
+    _save_local_copy(photo_id, category, payload)
     return photo_id
 
 
@@ -82,6 +99,8 @@ def list_photo_ids(category: str) -> list[str]:
 
 
 def delete_photo(photo_id: str, category: str | None = None) -> bool:
+    deleted = False
+    effective_category = category
     with get_connection() as conn:
         with conn.cursor() as cur:
             if category:
@@ -90,5 +109,15 @@ def delete_photo(photo_id: str, category: str | None = None) -> bool:
                     (photo_id, category),
                 )
             else:
+                cur.execute("SELECT category FROM photos WHERE id = %s", (photo_id,))
+                row = cur.fetchone()
+                if row:
+                    effective_category = row[0]
                 cur.execute("DELETE FROM photos WHERE id = %s", (photo_id,))
-            return cur.rowcount > 0
+            deleted = cur.rowcount > 0
+
+    if deleted and effective_category:
+        local_file = _category_dir(effective_category) / photo_id
+        if local_file.exists():
+            local_file.unlink()
+    return deleted

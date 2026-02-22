@@ -1,5 +1,5 @@
 services:
-  ks-app:
+  luiza-app:
     volumes:
       - .:/app
       - ./data:/data
