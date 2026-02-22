@@ -7,6 +7,11 @@ from psycopg2 import OperationalError
 
 from src.settings import DATABASE_URL
 
+
+class DBUnavailableError(RuntimeError):
+    """Raised when no database endpoint is reachable."""
+
+
 _SCHEMA_BOOTSTRAPPED = False
 _SCHEMA_LOCK = Lock()
 
@@ -14,9 +19,14 @@ _SCHEMA_LOCK = Lock()
 def _dsn_candidates() -> list[str]:
     candidates = [DATABASE_URL]
     if "@db:" in DATABASE_URL or "@db/" in DATABASE_URL:
-        candidates.append(DATABASE_URL.replace("@db:", "@host.docker.internal:").replace("@db/", "@host.docker.internal/"))
-        candidates.append(DATABASE_URL.replace("@db:", "@localhost:").replace("@db/", "@localhost/"))
-    # keep order, remove duplicates
+        candidates.append(
+            DATABASE_URL.replace("@db:", "@host.docker.internal:").replace(
+                "@db/", "@host.docker.internal/"
+            )
+        )
+        candidates.append(
+            DATABASE_URL.replace("@db:", "@localhost:").replace("@db/", "@localhost/")
+        )
     return list(dict.fromkeys(candidates))
 
 
@@ -28,9 +38,9 @@ def _connect() -> psycopg2.extensions.connection:
         except OperationalError as exc:
             last_error = exc
             continue
-    if last_error:
-        raise last_error
-    return psycopg2.connect(DATABASE_URL)
+
+    message = str(last_error) if last_error else "Database is unavailable"
+    raise DBUnavailableError(message)
 
 
 def _ensure_schema(conn: psycopg2.extensions.connection) -> None:

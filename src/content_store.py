@@ -1,7 +1,9 @@
 import json
+from pathlib import Path
 from typing import Any
 
-from src.db import get_connection
+from src.db import DBUnavailableError, get_connection
+from src.settings import CONTENT_FILE
 
 DEFAULT_CONTENT: dict[str, Any] = {
     "hero_label": "Клиент-центрированный психотерапевт",
@@ -116,11 +118,37 @@ DEFAULT_CONTENT: dict[str, Any] = {
 }
 
 
+def _file_path() -> Path:
+    return Path(CONTENT_FILE)
+
+
+def _load_from_file() -> dict[str, Any]:
+    path = _file_path()
+    if not path.exists():
+        return DEFAULT_CONTENT.copy()
+    with path.open("r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    merged = DEFAULT_CONTENT.copy()
+    if isinstance(data, dict):
+        merged.update(data)
+    return merged
+
+
+def _save_to_file(payload: dict[str, Any]) -> None:
+    path = _file_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+
+
 def load_content() -> dict[str, Any]:
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT payload FROM site_content WHERE key = 'main'")
-            row = cur.fetchone()
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT payload FROM site_content WHERE key = 'main'")
+                row = cur.fetchone()
+    except DBUnavailableError:
+        return _load_from_file()
 
     if not row:
         return DEFAULT_CONTENT.copy()
@@ -136,14 +164,17 @@ def load_content() -> dict[str, Any]:
 
 
 def save_content(payload: dict[str, Any]) -> None:
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO site_content (key, payload)
-                VALUES ('main', %s::jsonb)
-                ON CONFLICT (key)
-                DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
-                """,
-                (json.dumps(payload, ensure_ascii=False),),
-            )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO site_content (key, payload)
+                    VALUES ('main', %s::jsonb)
+                    ON CONFLICT (key)
+                    DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+                    """,
+                    (json.dumps(payload, ensure_ascii=False),),
+                )
+    except DBUnavailableError:
+        _save_to_file(payload)
