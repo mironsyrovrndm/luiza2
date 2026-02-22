@@ -3,11 +3,34 @@ from threading import Lock
 from typing import Iterator
 
 import psycopg2
+from psycopg2 import OperationalError
 
 from src.settings import DATABASE_URL
 
 _SCHEMA_BOOTSTRAPPED = False
 _SCHEMA_LOCK = Lock()
+
+
+def _dsn_candidates() -> list[str]:
+    candidates = [DATABASE_URL]
+    if "@db:" in DATABASE_URL or "@db/" in DATABASE_URL:
+        candidates.append(DATABASE_URL.replace("@db:", "@host.docker.internal:").replace("@db/", "@host.docker.internal/"))
+        candidates.append(DATABASE_URL.replace("@db:", "@localhost:").replace("@db/", "@localhost/"))
+    # keep order, remove duplicates
+    return list(dict.fromkeys(candidates))
+
+
+def _connect() -> psycopg2.extensions.connection:
+    last_error: Exception | None = None
+    for dsn in _dsn_candidates():
+        try:
+            return psycopg2.connect(dsn)
+        except OperationalError as exc:
+            last_error = exc
+            continue
+    if last_error:
+        raise last_error
+    return psycopg2.connect(DATABASE_URL)
 
 
 def _ensure_schema(conn: psycopg2.extensions.connection) -> None:
@@ -58,7 +81,7 @@ def _ensure_schema(conn: psycopg2.extensions.connection) -> None:
 
 @contextmanager
 def get_connection() -> Iterator[psycopg2.extensions.connection]:
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = _connect()
     try:
         _ensure_schema(conn)
         yield conn
