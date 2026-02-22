@@ -1,8 +1,7 @@
 import json
-from pathlib import Path
 from typing import Any
 
-from src.settings import Config
+from src.db import get_connection
 
 DEFAULT_CONTENT: dict[str, Any] = {
     "hero_label": "Клиент-центрированный психотерапевт",
@@ -117,23 +116,34 @@ DEFAULT_CONTENT: dict[str, Any] = {
 }
 
 
-def _store_path() -> Path:
-    return Path(Config.CONTENT_FILE)
-
-
 def load_content() -> dict[str, Any]:
-    path = _store_path()
-    if not path.exists():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT payload FROM site_content WHERE key = 'main'")
+            row = cur.fetchone()
+
+    if not row:
         return DEFAULT_CONTENT.copy()
-    with path.open("r", encoding="utf-8") as handle:
-        data = json.load(handle)
+
+    data = row[0]
+    if isinstance(data, str):
+        data = json.loads(data)
+
     merged = DEFAULT_CONTENT.copy()
-    merged.update(data)
+    if isinstance(data, dict):
+        merged.update(data)
     return merged
 
 
 def save_content(payload: dict[str, Any]) -> None:
-    path = _store_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO site_content (key, payload)
+                VALUES ('main', %s::jsonb)
+                ON CONFLICT (key)
+                DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()
+                """,
+                (json.dumps(payload, ensure_ascii=False),),
+            )

@@ -1,15 +1,13 @@
-import os
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Iterable
 
 from flask import redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
 from src.blueprints.admin import admin_bp
-from src.settings import Config
 from src.content_store import DEFAULT_CONTENT, load_content, save_content
 from src.records_store import add_record, load_records, update_record_status
+from src.photo_store import delete_photo, list_photo_ids, save_photo
 
 ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif", "webp"}
 
@@ -19,16 +17,7 @@ def _is_allowed(filename: str) -> bool:
 
 
 def _list_uploads() -> Iterable[str]:
-    upload_dir = Path(Config.UPLOAD_FOLDER)
-    if not upload_dir.exists():
-        return []
-    return sorted(
-        [
-            file.name
-            for file in upload_dir.iterdir()
-            if file.is_file() and _is_allowed(file.name)
-        ]
-    )
+    return list_photo_ids("uploads")
 
 
 def _split_lines(value: str) -> list[str]:
@@ -77,11 +66,11 @@ def _parse_supervision() -> list[dict[str, object]]:
     return items
 
 
-def _save_file(file, upload_dir: Path) -> str:
-    filename = secure_filename(file.filename)
-    os.makedirs(upload_dir, exist_ok=True)
-    file.save(upload_dir / filename)
-    return filename
+def _save_file(file, category: str) -> str:
+    filename = secure_filename(file.filename or "")
+    if not filename or not _is_allowed(filename):
+        return ""
+    return save_photo(category, file)
 
 
 def _format_datetime(date_value: str, time_value: str) -> str:
@@ -241,7 +230,7 @@ def upload_hero():
     if not _is_allowed(file.filename):
         return redirect(url_for("admin.content"))
 
-    filename = _save_file(file, Path(Config.HERO_UPLOAD_FOLDER))
+    filename = _save_file(file, "hero")
     content_data = load_content()
     content_data["hero_image"] = filename
     save_content(content_data)
@@ -253,9 +242,7 @@ def delete_hero():
     content_data = load_content()
     filename = content_data.get("hero_image")
     if filename:
-        path = Path(Config.HERO_UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+        delete_photo(str(filename), category="hero")
         content_data["hero_image"] = ""
         save_content(content_data)
     return redirect(url_for("admin.content"))
@@ -269,7 +256,7 @@ def upload_about():
     if not _is_allowed(file.filename):
         return redirect(url_for("admin.content"))
 
-    filename = _save_file(file, Path(Config.ABOUT_UPLOAD_FOLDER))
+    filename = _save_file(file, "about")
     content_data = load_content()
     content_data["about_image"] = filename
     save_content(content_data)
@@ -281,9 +268,7 @@ def delete_about():
     content_data = load_content()
     filename = content_data.get("about_image")
     if filename:
-        path = Path(Config.ABOUT_UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+        delete_photo(str(filename), category="about")
         content_data["about_image"] = ""
         save_content(content_data)
     return redirect(url_for("admin.content"))
@@ -295,13 +280,12 @@ def upload_gallery():
     if not files:
         return redirect(url_for("admin.content"))
 
-    upload_dir = Path(Config.UPLOAD_FOLDER)
     for file in files:
         if not file or file.filename == "":
             continue
         if not _is_allowed(file.filename):
             continue
-        _save_file(file, upload_dir)
+        _save_file(file, "uploads")
     return redirect(url_for("admin.content"))
 
 
@@ -309,9 +293,7 @@ def upload_gallery():
 def delete_gallery():
     filename = request.form.get("filename", "")
     if filename:
-        path = Path(Config.UPLOAD_FOLDER) / filename
-        if path.exists():
-            path.unlink()
+        delete_photo(filename, category="uploads")
     return redirect(url_for("admin.content"))
 
 

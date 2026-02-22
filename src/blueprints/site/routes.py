@@ -1,19 +1,14 @@
 from datetime import datetime
-from pathlib import Path
-
-from flask import redirect, render_template, request, url_for
+from flask import Response, abort, redirect, render_template, request, url_for
 
 from src.blueprints.site import site_bp
-from src.settings import Config
 from src.content_store import load_content
 from src.records_store import add_record
+from src.photo_store import get_photo, list_photo_ids
 
 
 def _list_gallery_images() -> list[str]:
-    upload_dir = Path(Config.UPLOAD_FOLDER)
-    if not upload_dir.exists():
-        return []
-    return sorted([file.name for file in upload_dir.iterdir() if file.is_file()])
+    return list_photo_ids("uploads")
 
 
 @site_bp.get("/")
@@ -49,3 +44,11 @@ def contact():
             }
         )
     return redirect(url_for("site.index", submitted=1))
+
+
+@site_bp.get("/media/<category>/<photo_id>")
+def media(category: str, photo_id: str):
+    photo = get_photo(photo_id, category=category)
+    if not photo:
+        abort(404)
+    return Response(photo["payload"], mimetype=photo["mime_type"])
