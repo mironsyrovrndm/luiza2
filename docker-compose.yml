@@ -23,8 +23,10 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
 
     volumes:
-      - psy_content:/data
-      - psy_uploads:/uploads
+      - psy_content:/app/src/data
+      - psy_uploads:/app/src/blueprints/site/static/uploads
+      - psy_hero:/app/src/blueprints/site/static/hero
+      - psy_about:/app/src/blueprints/site/static/about
 
     depends_on:
       db:
@@ -58,3 +60,5 @@ volumes:
   psy_data:
   psy_content:
   psy_uploads:
+  psy_hero:
+  psy_about:

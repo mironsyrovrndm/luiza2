@@ -1,1 +1,3 @@
-from src.app import app
+from src import create_app
+
+app = create_app()

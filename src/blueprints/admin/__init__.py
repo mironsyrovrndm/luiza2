@@ -5,7 +5,6 @@ admin_bp = Blueprint(
     __name__,
     template_folder="templates",
     static_folder="static",
-    url_prefix="/admin",
 )
 
 from src.blueprints.admin import routes  # noqa: E402,F401

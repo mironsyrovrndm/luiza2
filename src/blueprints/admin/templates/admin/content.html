@@ -315,7 +315,7 @@
   {% if content.hero_image %}
   <div class="gallery">
     <div class="gallery__item">
-      <img src="{{ url_for('landing.uploads', filename='hero/' ~ content.hero_image) }}" alt="Hero" />
+      <img src="{{ url_for('site.static', filename='hero/' ~ content.hero_image) }}" alt="Hero" />
       <span>{{ content.hero_image }}</span>
       <form method="post" action="{{ url_for('admin.delete_hero') }}">
         <button class="button button--ghost" type="submit">Удалить</button>
@@ -344,7 +344,7 @@
   {% if content.about_image %}
   <div class="gallery">
     <div class="gallery__item">
-      <img src="{{ url_for('landing.uploads', filename='about/' ~ content.about_image) }}" alt="About" />
+      <img src="{{ url_for('site.static', filename='about/' ~ content.about_image) }}" alt="About" />
       <span>{{ content.about_image }}</span>
       <form method="post" action="{{ url_for('admin.delete_about') }}">
         <button class="button button--ghost" type="submit">Удалить</button>
@@ -374,7 +374,7 @@
   <div class="gallery">
     {% for image in uploads %}
     <div class="gallery__item">
-      <img src="{{ url_for('landing.uploads', filename='gallery/' ~ image) }}" alt="Загруженное фото" />
+      <img src="{{ url_for('site.static', filename='uploads/' ~ image) }}" alt="Загруженное фото" />
       <span>{{ image }}</span>
       <form method="post" action="{{ url_for('admin.delete_gallery') }}">
         <input type="hidden" name="filename" value="{{ image }}" />

@@ -3,11 +3,11 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from src import settings
+from src.settings import Config
 
 
 def _store_path() -> Path:
-    return Path(settings.RECORDS_FILE)
+    return Path(Config.RECORDS_FILE)
 
 
 def load_records() -> list[dict[str, Any]]:

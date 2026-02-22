@@ -1,31 +1,15 @@
-from importlib import import_module
+from flask import Flask
 
-from flask import Blueprint, Flask
-
-from src.extensions import init_extensions
-
-
-def create_app(name: str = __name__) -> Flask:
-    _app = Flask(name, static_folder="static", static_url_path="/static")
-    _app.config.from_pyfile("settings.py")
-    _app.config.from_envvar("FLASK_SETTINGS", silent=True)
-    return _app
+from src.blueprints.admin import admin_bp
+from src.blueprints.site import site_bp
+from src.settings import Config
 
 
-def register_blueprints(_app: Flask) -> None:
-    for name in _app.config.get("BLUEPRINTS", []):
-        module = import_module(f"src.blueprints.{name}")
+def create_app() -> Flask:
+    app = Flask(__name__, static_folder=None)
+    app.config.from_object(Config)
 
-        for item_name in dir(module):
-            item = getattr(module, item_name)
-            if isinstance(item, Blueprint):
-                _app.register_blueprint(item)
+    app.register_blueprint(site_bp)
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
-        import_module(f"src.blueprints.{name}.routes")
-
-
-app = create_app()
-
-with app.app_context():
-    register_blueprints(app)
-    init_extensions(app)
+    return app

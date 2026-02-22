@@ -1,21 +1,30 @@
 import os
+from pathlib import Path
 
-DEBUG = False
 
-# === Security ===
-SECRET_KEY = os.getenv("SECRET_KEY", "!A6s&M0Q'^:)v<;h^MK2)'V#yq*lncN")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
-
-# == Directories ===
-DATA_PATH = os.getenv("DATA_PATH", "/data")
-UPLOAD_PATH = os.getenv("UPLOAD_PATH", "/uploads")
-
-BLUEPRINTS = ["admin", "landing"]
-
-# Backward-compatible keys used by handlers/stores
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://psy_user:psy_password@db:5432/psy_db")
-CONTENT_FILE = os.path.join(DATA_PATH, "content.json")
-RECORDS_FILE = os.path.join(DATA_PATH, "records.json")
-HERO_UPLOAD_FOLDER = os.path.join(UPLOAD_PATH, "hero")
-ABOUT_UPLOAD_FOLDER = os.path.join(UPLOAD_PATH, "about")
-UPLOAD_FOLDER = os.path.join(UPLOAD_PATH, "gallery")
+class Config:
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "postgresql://psy_user:psy_password@db:5432/psy_db",
+    )
+    UPLOAD_FOLDER = os.getenv(
+        "UPLOAD_FOLDER",
+        str(Path(__file__).resolve().parent / "blueprints" / "site" / "static" / "uploads"),
+    )
+    HERO_UPLOAD_FOLDER = os.getenv(
+        "HERO_UPLOAD_FOLDER",
+        str(Path(__file__).resolve().parent / "blueprints" / "site" / "static" / "hero"),
+    )
+    ABOUT_UPLOAD_FOLDER = os.getenv(
+        "ABOUT_UPLOAD_FOLDER",
+        str(Path(__file__).resolve().parent / "blueprints" / "site" / "static" / "about"),
+    )
+    CONTENT_FILE = os.getenv(
+        "CONTENT_FILE",
+        str(Path(__file__).resolve().parent / "data" / "content.json"),
+    )
+    RECORDS_FILE = os.getenv(
+        "RECORDS_FILE",
+        str(Path(__file__).resolve().parent / "data" / "records.json"),
+    )
