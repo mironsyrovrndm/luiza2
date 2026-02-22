@@ -15,7 +15,7 @@ services:
     ports:
       - "8096:5000"
     environment:
-      FLASK_APP: app
-      FLASK_SETTINGS: ../etc/settings_docker.py
+      FLASK_APP: src.app:app
+      FLASK_SETTINGS: /app/etc/settings_docker.py
       FLASK_ENV: development
       FLASK_DEBUG: 1
