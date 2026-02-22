@@ -24,6 +24,12 @@ def _split_lines(value: str) -> list[str]:
     return [line.strip() for line in value.splitlines() if line.strip()]
 
 
+def _form_value(content_data: dict, key: str) -> str:
+    if key in request.form:
+        return request.form.get(key, "")
+    return str(content_data.get(key, ""))
+
+
 def _parse_products() -> list[dict[str, str]]:
     badges = request.form.getlist("products_badge")
     titles = request.form.getlist("products_title_item")
@@ -187,37 +193,39 @@ def save_content_route():
     payload = {
         **DEFAULT_CONTENT,
         **content_data,
-        "hero_label": request.form.get("hero_label", content_data.get("hero_label", "")),
-        "hero_title": request.form.get("hero_title", content_data.get("hero_title", "")),
-        "hero_text": request.form.get("hero_text", content_data.get("hero_text", "")),
-        "hero_button": request.form.get("hero_button", content_data.get("hero_button", "")),
-        "about_title": request.form.get("about_title", content_data.get("about_title", "")),
+        "hero_label": _form_value(content_data, "hero_label"),
+        "hero_title": _form_value(content_data, "hero_title"),
+        "hero_text": _form_value(content_data, "hero_text"),
+        "hero_button": _form_value(content_data, "hero_button"),
+        "about_title": _form_value(content_data, "about_title"),
         "about_image": content_data.get("about_image", ""),
-        "about_education": _split_lines(request.form.get("about_education", ""))
-        or content_data.get("about_education", []),
-        "products_title": request.form.get("products_title", content_data.get("products_title", "")),
-        "products": _parse_products() or content_data.get("products", []),
-        "clients_title": request.form.get("clients_title", content_data.get("clients_title", "")),
-        "clients_subtitle": request.form.get("clients_subtitle", content_data.get("clients_subtitle", "")),
-        "clients": _parse_clients() or content_data.get("clients", []),
-        "supervision_title": request.form.get(
-            "supervision_title", content_data.get("supervision_title", "")
-        ),
-        "supervision_subtitle": request.form.get(
-            "supervision_subtitle", content_data.get("supervision_subtitle", "")
-        ),
-        "supervision": _parse_supervision() or content_data.get("supervision", []),
-        "speaker_title": request.form.get("speaker_title", content_data.get("speaker_title", "")),
-        "speaker_text": request.form.get("speaker_text", content_data.get("speaker_text", "")),
-        "speaker_button": request.form.get("speaker_button", content_data.get("speaker_button", "")),
-        "contacts_title": request.form.get("contacts_title", content_data.get("contacts_title", "")),
-        "contacts_text": request.form.get("contacts_text", content_data.get("contacts_text", "")),
-        "contacts_phone": request.form.get("contacts_phone", content_data.get("contacts_phone", "")),
-        "contacts_email": request.form.get("contacts_email", content_data.get("contacts_email", "")),
-        "contacts_telegram": request.form.get(
-            "contacts_telegram", content_data.get("contacts_telegram", "")
-        ),
+        "products_title": _form_value(content_data, "products_title"),
+        "clients_title": _form_value(content_data, "clients_title"),
+        "clients_subtitle": _form_value(content_data, "clients_subtitle"),
+        "supervision_title": _form_value(content_data, "supervision_title"),
+        "supervision_subtitle": _form_value(content_data, "supervision_subtitle"),
+        "speaker_title": _form_value(content_data, "speaker_title"),
+        "speaker_text": _form_value(content_data, "speaker_text"),
+        "speaker_button": _form_value(content_data, "speaker_button"),
+        "contacts_title": _form_value(content_data, "contacts_title"),
+        "contacts_text": _form_value(content_data, "contacts_text"),
+        "contacts_phone": _form_value(content_data, "contacts_phone"),
+        "contacts_email": _form_value(content_data, "contacts_email"),
+        "contacts_telegram": _form_value(content_data, "contacts_telegram"),
     }
+
+    if "about_education" in request.form:
+        payload["about_education"] = _split_lines(request.form.get("about_education", ""))
+
+    if any(k in request.form for k in ("products_badge", "products_title_item", "products_text", "products_meta")):
+        payload["products"] = _parse_products()
+
+    if any(k in request.form for k in ("clients_title_item", "clients_text")):
+        payload["clients"] = _parse_clients()
+
+    if any(k in request.form for k in ("supervision_title_item", "supervision_price", "supervision_meta", "supervision_bullets")):
+        payload["supervision"] = _parse_supervision()
+
     save_content(payload)
     return redirect(url_for("admin.content"))
 

@@ -6,12 +6,21 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 from src.db import DBUnavailableError, get_connection
+from flask import current_app, has_app_context
+
 from src.settings import ABOUT_UPLOAD_FOLDER, HERO_UPLOAD_FOLDER, UPLOAD_FOLDER
 
 ALLOWED_CATEGORIES = {"hero", "about", "uploads"}
 
 
 def _category_dir(category: str) -> Path:
+    if has_app_context():
+        if category == "hero":
+            return Path(current_app.config.get("HERO_UPLOAD_FOLDER", HERO_UPLOAD_FOLDER))
+        if category == "about":
+            return Path(current_app.config.get("ABOUT_UPLOAD_FOLDER", ABOUT_UPLOAD_FOLDER))
+        return Path(current_app.config.get("UPLOAD_FOLDER", UPLOAD_FOLDER))
+
     if category == "hero":
         return Path(HERO_UPLOAD_FOLDER)
     if category == "about":
