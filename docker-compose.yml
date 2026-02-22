@@ -5,6 +5,7 @@ services:
       - ./data:/data
       - ./uploads:/uploads
     build: .
+    entrypoint: []
     command: sh -c "
       poetry env info
       && poetry config installer.max-workers 10
