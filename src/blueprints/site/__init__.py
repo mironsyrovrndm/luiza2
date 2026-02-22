@@ -8,4 +8,4 @@ site_bp = Blueprint(
     static_url_path="/static",
 )
 
-from app.blueprints.site import routes  # noqa: E402,F401
+from src.blueprints.site import routes  # noqa: E402,F401

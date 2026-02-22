@@ -6,10 +6,10 @@ from typing import Iterable
 from flask import redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
-from app.blueprints.admin import admin_bp
-from app.config import Config
-from app.content_store import DEFAULT_CONTENT, load_content, save_content
-from app.records_store import add_record, load_records, update_record_status
+from src.blueprints.admin import admin_bp
+from src.settings import Config
+from src.content_store import DEFAULT_CONTENT, load_content, save_content
+from src.records_store import add_record, load_records, update_record_status
 
 ALLOWED_EXTENSIONS: set[str] = {"png", "jpg", "jpeg", "gif", "webp"}
 
