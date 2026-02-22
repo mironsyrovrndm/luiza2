@@ -1,8 +1,8 @@
 from flask import Flask
 
-from app.blueprints.admin import admin_bp
-from app.blueprints.site import site_bp
-from app.config import Config
+from src.blueprints.admin import admin_bp
+from src.blueprints.site import site_bp
+from src.settings import Config
 
 
 def create_app() -> Flask:

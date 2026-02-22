@@ -7,4 +7,4 @@ admin_bp = Blueprint(
     static_folder="static",
 )
 
-from app.blueprints.admin import routes  # noqa: E402,F401
+from src.blueprints.admin import routes  # noqa: E402,F401

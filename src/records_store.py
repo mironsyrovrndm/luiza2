@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from app.config import Config
+from src.settings import Config
 
 
 def _store_path() -> Path:
